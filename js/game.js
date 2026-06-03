@@ -119,9 +119,6 @@ $.init = function() {
 	$.levelPops = [];
 	$.powerupTimers = [];
 
-	//creating an enemy type screen
-	//$.showEnemyPopup = false;
-
 	// Creating Enemy Names
 	$.enemyNames = [
     "STRIDER",
@@ -798,9 +795,6 @@ $.keydowncb = function( e ) {
 		}
         $.keys.state.right = 1;
     }
-
-	// Adding E to toggle enemy type display
-	//if( e === 69 ){ $.keys.state.e = 1; }
 }
 
 $.keyupcb = function( e ) {
@@ -809,9 +803,6 @@ $.keyupcb = function( e ) {
 	if( e === 39 || e === 68 ){ $.keys.state.right = 0; }
 	if( e === 40 || e === 83 ){ $.keys.state.down = 0; }
 	if( e === 37 || e === 65 ){ $.keys.state.left = 0; }
-
-	// Adding E to toggle enemy type display
-	//if( e === 69 ){ $.keys.state.e = 0; }
 }
 
 $.resizecb = function( e ) {
@@ -831,77 +822,6 @@ $.bindEvents = function() {
 	window.addEventListener( 'resize', $.resizecb );
 	window.addEventListener( 'blur', $.blurcb );
 };
-
-/*==============================================================================
-Draw Enemy Type Pop function
-================================================================================*/
-
-/*
-// Draw Enemy Type Pop function
-$.drawEnemyPopup = function() {
-    var ctx = $.ctxmg;
-    var w = $.cw, h = $.ch;
-
-    // Background overlay
-    ctx.fillStyle = "rgba(0,0,0,0.85)";
-    ctx.fillRect(0, 0, w, h);
-
-    // Title
-    ctx.fillStyle = "#fff";
-    ctx.font = "32px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Enemy Guide", w / 2, 60);
-
-    // Dynamic grid
-    var enemyCount = $.definitions.enemies.length;
-    var cols = 3;
-    var rows = Math.ceil(enemyCount / cols);
-
-    var cellW = w / cols;
-    var cellH = Math.floor((h - 150) / rows);
-
-    // Target max display radius
-    var targetMaxRadius = (cellH - 60) / 2;
-
-    for (var i = 0; i < enemyCount; i++) {
-        var col = i % cols;
-        var row = Math.floor(i / cols);
-
-        var cx = col * cellW + cellW / 2;
-        var cy = 120 + row * (cellH + 15);
-
-        var def = $.definitions.enemies[i];
-        var name = $.enemyNames[i] || ("Enemy " + i);
-
-        // Create preview enemy
-        var preview = new $.Enemy({
-            x: cx,
-            y: cy - 10,
-            hue: def.hue,
-            radius: def.radius,
-            speed: def.speed,
-            life: def.life,
-            value: def.value,
-            saturation: def.saturation,
-            lightness: def.lightness
-        });
-
-        // --- HYBRID SCALING ---
-        var scale = targetMaxRadius / def.radius;
-
-        // Clamp scale so small enemies don't shrink too much
-        scale = Math.max(0.5, Math.min(scale, 1));
-
-        // Render preview
-        preview.renderPreview(ctx, cx, cy - 10, scale);
-
-        // Name
-        ctx.fillStyle = "#fff";
-        ctx.font = "18px Arial";
-        ctx.fillText(name, cx, cy + def.radius * scale + 25);
-    }
-};
-*/
 
 /*==============================================================================
 Miscellaneous
@@ -1337,20 +1257,6 @@ $.setupStates = function() {
 	};
 
 	$.states['play'] = function() {
-
-		/*
-		// ---Enemy Type Popup Toggle---
-		if ($.keys.state.e && !$.okeys.e) {
-			$.showEnemyPopup = !$.showEnemyPopup;
-		}
-		$.okeys.e = $.keys.state.e;
-
-		// --- If popup is open, draw it and stop the game ---
-		if ($.showEnemyPopup){
-			$.drawEnemyPopup();
-			return;
-		}
-		*/
 
 		// Normal gameplay continues below
 		$.updateDelta();
