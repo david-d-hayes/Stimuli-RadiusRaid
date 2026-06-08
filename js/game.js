@@ -1041,39 +1041,7 @@ $.setState = function( state ) {
 		$.buttons.push(playButton);
 	}
 
-	$.states['gameover'] = function() {
-
-		if (!$.scoreSubmitted){
-			$.scoreSubmitted = true;
-		
-			console.log("Sending score to Supabase...", {
-				anon_id: $.anon_id,
-				enemies_defeated: $.enemiesDefeated
-			});
-
-			// submitting enemiesDefeated to leaderboard
-			fetch("https://mfpdafbmceoyswgosmsm.supabase.co/rest/v1/CompLeaderboard", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcGRhZmJtY2VveXN3Z29zbXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjc3OTgsImV4cCI6MjA5NDk0Mzc5OH0.v3DuxuzJ4Z9Q2MxohimoQqFafc_aezYOEQf3TE3yKKo",
-				"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcGRhZmJtY2VveXN3Z29zbXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjc3OTgsImV4cCI6MjA5NDk0Mzc5OH0.v3DuxuzJ4Z9Q2MxohimoQqFafc_aezYOEQf3TE3yKKo"
-			},
-			body: JSON.stringify({
-				anon_id: $.anon_id,
-				enemies_defeated: $.enemiesDefeated
-			})
-			})
-			.then(async (r) => {
-				console.log("Supabase response status:", r.status);
-				const data = await r.json().catch(() => null);
-				console.log("Supabase response body:", data);
-			})
-			.catch(err => {
-				console.error("Supabase fetch error:", err);
-			});
-
-		}
+$.states['gameover'] = function() {
 
 		// reset any leftover transforms from gameplay
 		$.ctxmg.setTransform(1, 0, 0, 1, 0, 0);
@@ -1120,71 +1088,128 @@ $.setState = function( state ) {
 		});
 		$.ctxmg.fill();
 
-		// REDIRECT MESSAGE
+		// Instructions
 		$.ctxmg.fillStyle = "#fff";
 		$.ctxmg.font = "32px Arial";
 		$.ctxmg.textAlign = "center";
 		$.ctxmg.textBaseline = "top";
 
 		$.ctxmg.fillText(
-			"You will now be redirected back to the survey.",
+			"Click CONTINUE below to return to the survey",
 			$.cw / 2,
 			title2.ey + 130
 		);
 
-		$.ctxmg.fillText(
-			"This may take a moment.",
-			$.cw / 2,
-			title2.ey + 190
-		);
+		// Only set up overlay + button once
+		if (!$.scoreSubmitted) {
+			$.scoreSubmitted = true;
 		
-		// Game Data Block for exporting to Qualtrics
-		const gameData = {
-			pid: $.pid,
-			cd: $.cd,
-			se: $.se,
-			enemies: $.enemiesDefeated,
-			enemytypes: $.enemyDefeatCount,
-			score: $.score,
-			deaths: $.deaths,
-			bullets: $.bulletsFired,
-			powerups: $.powerupsCollected,
-			timeidle: $.timeIdle,
-			timemoving: $.timeMoving,
-			timeaiming: $.timeAiming,
-			timeshooting: $.timeShooting,
-			timeaimingstill: $.timeAimingStill,
-			timeshootingstill: $.timeShootingStill,
-			timeaimingmoving: $.timeAimingMoving,
-			timeshootingmoving: $.timeShootingMoving,
-			movedistance: $.distanceMoved,
-			areaexplored: $.areaExplored,
-			movex: $.totalXMovement,
-			movey: $.totalYMovement,
-			minx: $.minX,
-			maxx: $.maxX,
-			miny: $.minY,
-			maxy: $.maxY,
-			button: $.buttonPresses,
-			up: $.upPresses,
-			down: $.downPresses,
-			left: $.leftPresses,
-			right: $.rightPresses,
-			mouseclicks: $.mouseClicks,
-			mousedistance: $.mouseDistance
-		};
+			//SAFE CONTINUE BUTTON OVERLAY
+			const overlay = document.createElement("div");
+			overlay.style.position = "absolute";
+			overlay.style.top = "0";
+			overlay.style.left = "0";
+			overlay.style.width = "100%";
+			overlay.style.height = "100%";
+			overlay.style.background = "transparent";
+			overlay.style.display = "flex";
+			overlay.style.flexDirection = "column";
+			overlay.style.justifyContent = "center";
+			overlay.style.alignItems = "center";
+			overlay.style.zIndex = "9999";
+			overlay.style.color = "white";
+			overlay.style.fontSize = "20px";
+			overlay.style.fontFamily = "Arial, sans-serif";
 
-		// Redirect to second part of Qualtrics study with embedded values included
-		const returnURL =
-			"https://unioflimerick.eu.qualtrics.com/jfe/form/SV_9ZEGXM9BEz82kMC" +
-			"?pid=" + encodeURIComponent($.pid) +
-			"&id="	+ encodeURIComponent($.id) +
-			"&anon_id=" + encodeURIComponent($.anon_id) +
-			"&se=" + encodeURIComponent($.se) +
-			"&cd=" + encodeURIComponent ($.cd)  +
-			"&data=" + encodeURIComponent(JSON.stringify(gameData));
-			
-		window.location.href = returnURL;
+			const btn = document.createElement("button");
+			btn.textContent = "CONTINUE";
+			btn.style.padding = "12px 24px";
+			btn.style.fontSize = "18px";
+			btn.style.cursor = "pointer";
+			btn.style.marginTop = "450px";
+
+			const status = document.createElement("div");
+			status.style.marginTop = "20px";
+			status.textContent = "";
+
+			overlay.appendChild(btn);
+			overlay.appendChild(status);
+			document.body.appendChild(overlay);
+
+			// Build Qualtrics redirect URL
+			const returnURL =
+				"https://unioflimerick.eu.qualtrics.com/jfe/form/SV_9ZEGXM9BEz82kMC" +
+				"?pid=" + encodeURIComponent($.pid) +
+				"&id="	+ encodeURIComponent($.id) +
+				"&anon_id=" + encodeURIComponent($.anon_id) +
+				"&se=" + encodeURIComponent($.se) +
+				"&cd=" + encodeURIComponent ($.cd)  +
+				"&data=" + encodeURIComponent(JSON.stringify({
+					pid: $.pid,
+					cd: $.cd,
+					se: $.se,
+					enemies: $.enemiesDefeated,
+					enemytypes: $.enemyDefeatCount,
+					score: $.score,
+					deaths: $.deaths,
+					bullets: $.bulletsFired,
+					powerups: $.powerupsCollected,
+					timeidle: $.timeIdle,
+					timemoving: $.timeMoving,
+					timeaiming: $.timeAiming,
+					timeshooting: $.timeShooting,
+					timeaimingstill: $.timeAimingStill,
+					timeshootingstill: $.timeShootingStill,
+					timeaimingmoving: $.timeAimingMoving,
+					timeshootingmoving: $.timeShootingMoving,
+					movedistance: $.distanceMoved,
+					areaexplored: $.areaExplored,
+					movex: $.totalXMovement,
+					movey: $.totalYMovement,
+					minx: $.minX,
+					maxx: $.maxX,
+					miny: $.minY,
+					maxy: $.maxY,
+					button: $.buttonPresses,
+					up: $.upPresses,
+					down: $.downPresses,
+					left: $.leftPresses,
+					right: $.rightPresses,
+					mouseclicks: $.mouseClicks,
+					mousedistance: $.mouseDistance
+				}));
+		
+			// Button click handler
+			btn.onclick = function () {
+				btn.disabled = true;
+				btn.style.opacity = "0.6";
+				status.textContent = "Saving your game data... please wait";
+
+				// submitting enemiesDefeated to leaderboard
+				fetch("https://mfpdafbmceoyswgosmsm.supabase.co/rest/v1/CompLeaderboard", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcGRhZmJtY2VveXN3Z29zbXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjc3OTgsImV4cCI6MjA5NDk0Mzc5OH0.v3DuxuzJ4Z9Q2MxohimoQqFafc_aezYOEQf3TE3yKKo",
+						"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcGRhZmJtY2VveXN3Z29zbXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjc3OTgsImV4cCI6MjA5NDk0Mzc5OH0.v3DuxuzJ4Z9Q2MxohimoQqFafc_aezYOEQf3TE3yKKo"
+					},
+					body: JSON.stringify({
+						anon_id: $.anon_id,
+						enemies_defeated: $.enemiesDefeated
+					})
+				})
+				
+				.then(() => {
+					status.textContent = "Saved! Redirecting...";
+					window.location.href = returnURL;
+				})
+				.catch(() => {
+					status.textContent = "Error saving data. Please click CONTINUE again.";
+					btn.disabled = false;
+					btn.style.opacity = "1";
+				});
+			};
+		}
 	};
 
 	// set state
